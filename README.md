@@ -14,25 +14,24 @@ from mycgi import Form
 
 form = Form()
 
-# name is a text input field:
-name = form.getvalue('name')
-# or: name = form.getfirst('name')
-# or: names = form.getlist('name')
+# Field 'name' is a text input field:
+name = form.getvalue('name') # This will be a list if the form has multiple 'name' fields
+name = form.getfirst('name') # This will be a single string
+names = form.getlist('name') # This will be a list of strings
 
-# spreadsheet is a file input field:
+# Field 'spreadsheet' is a file input field:
 fileitem = form['spreadsheet']
-# The name of the uploaded file:
-filename = fileitem.filename
-# Get the file contents as a bytestring:
-spreadsheet_data = fileitem.file.read()
-# or: spreadsheet_data = fileitem.value
-# or: spreadsheet data = form.getvalue('spreadsheet')
+filename = fileitem.filename # The name of the uploaded file
+# Get the file contents as bytes 3 different ways:
+contents = fileitem.file.read()
+contents = fileitem.value
+contents = form.getvalue('spreadsheet')
 ```
 
 Documentation
 -------------
 
-The `mycgi.Form` class's initializer is:
+The initializer for the `mycgi.Form` class is:
 
 ```
     def __init__(self, environ=os.environ, fp=None, keep_blank_values=False):
@@ -56,7 +55,8 @@ The `mycgi.Form` class's initializer is:
 
 ```
 
-A `mycgi.Form` instance is a specialized dictionary whose keys are the field names and whose values are either a `mycgi.Field` instance or a list of these instances. A `cgi.Field` instance has the following attributes:
+A `mycgi.Form` instance is a specialized dictionary whose keys are the field names and whose values are either a `mycgi.Field`
+instance or a list of these instances. A `cgi.Field` instance has the following attributes:
 
 1. `name`:     The form field name.
 2. `filename`: If this field is for an uploaded file, then the uploaded filename, else None.
@@ -65,7 +65,7 @@ A `mycgi.Form` instance is a specialized dictionary whose keys are the field nam
 
 **Also supported are POST and PUT requests where the data is a JSON-encoded dictionary.**
 
-To use `mycgi.Form` with WSGI applications:
+To use `mycgi.Form` with a WSGI application:
 
 ```
 from mycgi import Form
