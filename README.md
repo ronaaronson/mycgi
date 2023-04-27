@@ -56,12 +56,12 @@ The initializer for the `mycgi.Form` class is:
 ```
 
 A `mycgi.Form` instance is a specialized dictionary whose keys are the field names and whose values are either a `mycgi.Field`
-instance or a list of these instances. A `cgi.Field` instance has the following attributes:
+instance or a list of these instances. A `mycgi.Field` instance has the following attributes:
 
 1. `name`:     The form field name.
 2. `filename`: If this field is for an uploaded file, then the uploaded filename, else None.
 3. `value`:    The form field value (or an uploaded file's contents as bytes).
-4. `file`:     If the field value is a string or byte string,then a stream that can be read to get the field's value, else None.
+4. `file`:     If the field value is a string or byte string, then a stream that can be read to get the field's value, else None.
 
 **Also supported are POST and PUT requests where the data is a JSON-encoded dictionary.**
 
@@ -102,8 +102,9 @@ assert form['y'].file.read() == '3'
 
 # Test a multipart POST request:
 # We have here a text input field named 'act' whose value is 'abc' and two
-# file input fields named 'the_file' where a file has been selected for only the
-# first occurence:
+# file input fields named 'the_file' where a file named 'test.txt' has been
+# selected for the first occurence and no file selected for the second
+# occurrence:
 
 # The following definition of fp is on a single line:
 fp = io.BytesIO(b'------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="act"\r\n\r\nTest\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="the_file"; filename="test.txt"\r\nContent-Type: text/plain\r\n\r\nabc\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="the_file"; filename=""\r\nContent-Type: application/octet-stream\r\n\r\n\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp--\r\n')
