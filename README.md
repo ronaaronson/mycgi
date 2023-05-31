@@ -1,10 +1,10 @@
-mycgi - A Python3 Replacement for the Deprecated `cgi` Module
-=============================================================
+# mycgi - A Python3 Replacement for the Deprecated `cgi` Module
 
-This module uses the `python-multipart` package for handling non-JSON-encoded POST and PUT requests.
+Other than using different class names (`mycgi.Form` instead of `cgi.FieldStorage` and `mycgi.Field` instead of `cgi.FieldStorage`) this module should be quite backward-compatible with the `mycgi` module. Additionally, JSON-encoded PUT and POST requests are supported.
 
-Some Usage Examples
--------------------
+Note that this module depends on the `python-multipart` package for handling POST and PUT requests that are not JSON-encoded.
+
+## Some Usage Examples
 
 ```
 # Instead of:
@@ -14,22 +14,22 @@ from mycgi import Form
 
 form = Form()
 
-# Field 'name' is a text input field:
-name = form.getvalue('name') # This will be a list if the form has multiple 'name' fields
-name = form.getfirst('name') # This will be a single string
-names = form.getlist('name') # This will be a list of strings
+# name is a text input field:
+name = form.getvalue('name') # this will be a list if the form has multiple 'name' fields
+# or: name = form.getfirst('name')
+# or: names = form.getlist('name')
 
-# Field 'spreadsheet' is a file input field:
+# spreadsheet is a file input field:
 fileitem = form['spreadsheet']
-filename = fileitem.filename # The name of the uploaded file
+# The name of the uploaded file:
+filename = fileitem.filename
 # Get the file contents as bytes 3 different ways:
 contents = fileitem.file.read()
 contents = fileitem.value
 contents = form.getvalue('spreadsheet')
 ```
 
-Documentation
--------------
+## Documentation
 
 The initializer for the `mycgi.Form` class is:
 
@@ -61,9 +61,15 @@ instance or a list of these instances. A `mycgi.Field` instance has the followin
 1. `name`:     The form field name.
 2. `filename`: If this field is for an uploaded file, then the uploaded filename, else None.
 3. `value`:    The form field value (or an uploaded file's contents as bytes).
-4. `file`:     If the field value is a string or byte string, then a stream that can be read to get the field's value, else None.
+4. `file`:     If the field value is a string or byte string,then a stream that can be read to get the field's value, else None.
 
-**Also supported are POST and PUT requests where the data is a JSON-encoded dictionary.**
+The `mycgi.Form` class supports the `getvalue`, `getlist` and `getfirst` methods that behave identically to the like-named methods of the deprecated `cgi.FieldStorage` class and which make it unnecessary to access the `mycgi.Field` instances, although doing so can be useful for processing file uploads.
+
+### JSON-encoded PUT and POST requests
+
+Also supported are POST and PUT requests where the data is a JSON-encoded dictionary.
+
+### WSGI Application Usage
 
 To use `mycgi.Form` with a WSGI application:
 
@@ -75,8 +81,7 @@ def wsgiApp(environ, start_response):
     ...
 ```
 
-Tests to Further Demonstrate `mycgi` Usage
-----------------------------------------
+## Tests To Demonstrate `mycgi` Usage
 
 ```
 from mycgi import Form
@@ -102,11 +107,9 @@ assert form['y'].file.read() == '3'
 
 # Test a multipart POST request:
 # We have here a text input field named 'act' whose value is 'abc' and two
-# file input fields named 'the_file' where a file named 'test.txt' has been
-# selected for the first occurence and no file selected for the second
-# occurrence:
+# file input fields named 'the_file' where a file has been selected for only the
+# first occurence:
 
-# The following definition of fp is on a single line:
 fp = io.BytesIO(b'------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="act"\r\n\r\nTest\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="the_file"; filename="test.txt"\r\nContent-Type: text/plain\r\n\r\nabc\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="the_file"; filename=""\r\nContent-Type: application/octet-stream\r\n\r\n\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp--\r\n')
 
 environ = {
