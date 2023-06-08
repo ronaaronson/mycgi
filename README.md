@@ -61,7 +61,7 @@ instance or a list of these instances. A `mycgi.Field` instance has the followin
 1. `name`:     The form field name.
 2. `filename`: If this field is for an uploaded file, then the uploaded filename, else None.
 3. `value`:    The form field value (or an uploaded file's contents as bytes).
-4. `file`:     If the field value is a string or byte string,then a stream that can be read to get the field's value, else None.
+4. `file`:     If the field value is a string or byte string, then a stream that can be read to get the field's value, else None.
 
 The `mycgi.Form` class supports the `getvalue`, `getlist` and `getfirst` methods that behave identically to the like-named methods of the deprecated `cgi.FieldStorage` class and which make it unnecessary to access the `mycgi.Field` instances, although doing so can be useful for processing file uploads.
 
