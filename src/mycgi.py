@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = '0.0.2.post2'
+__version__ = '0.0.3'
 
 import multipart
 import os
@@ -135,10 +135,12 @@ class Form(dict):
         filename = file.file_name.decode()
         file_object = file.file_object
         if file_object is not None:
-            value = file_object.getvalue()
+            file_object.seek(0, 0)
+            value = file_object.read()
             file_object.seek(0, 0)
         else:
             value = b''
+            file_object = io.BytesIO()
         self._add_field(name, filename, value, file_object)
 
     def getvalue(self, name, default=None):
