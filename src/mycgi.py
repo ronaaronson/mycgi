@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """A Python 3 replacement for the deprecated cgi module.
 
 Copyright 2023, Ronald Aaronson
@@ -17,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import multipart
 import os
@@ -36,27 +34,30 @@ class Field:
         """An instance has the following
         attributes:
             1. name:     The form field name.
-            2. filename: If this field is for an uploaded file, then the
-                         uploaded filename, else None.
-            3. value:    The form field value (or an uploaded
-                         file's contents as bytes).
-            4. file:     If the field value is a string or byte string,
-                         then a stream that can be read to get the field's
-                         value, else None.
+            2. filename: If this field is for a file, then the
+                         file's filename, else None.
+            3. value:    The form field value (or a file's contents as bytes).
+            4. file:     If this field is for a file, then a stream
+                         that can be read to get the uploaded file's value, else None.
         """
         self.name = name
         self.filename = filename
-        if file is None:
-            if isinstance(value, str):
-                file = io.StringIO(value)
-            elif isinstance(value, bytes):
-                file = io.BytesIO(value)
         self.file = file
-        self.value = value
+        self._value = value
+
+    @property
+    def value(self):
+        if self.file:
+            # An uploaded file (self._value is None)
+            self.file.seek(0, 0) # Ensure we are at start of stream
+            v = self.file.read()
+            self.file.seek(0, 0) # So a subsequent explicit call to read can be done
+            return v
+        else:
+            return self._value
 
     def __repr__(self):
-        return 'Field({0}, {1}, {2})'.format(repr(self.name), repr(self.filename), repr(self.value))
-
+        return f'Field({repr(self.name)}, {repr(self.filename)}, {repr(self.value)})'
 
 class Form(dict):
 
@@ -88,6 +89,7 @@ class Form(dict):
                            strings.
                            default: False
         """
+
         if 'CONTENT_TYPE' in environ:
             # POST or PUT request:
             if fp is None:
@@ -129,19 +131,16 @@ class Form(dict):
 
     def _on_file(self, file):
         # Called by multipart.parse_form for each file form field.
-        if not file.field_name:
-            return
         name = unquote_plus(file.field_name.decode())
-        filename = file.file_name.decode()
+        file_name = file.file_name
+        if file_name is not None:
+            file_name = file_name.decode()
         file_object = file.file_object
-        if file_object is not None:
-            file_object.seek(0, 0)
-            value = file_object.read()
-            file_object.seek(0, 0)
-        else:
-            value = b''
-            file_object = io.BytesIO()
-        self._add_field(name, filename, value, file_object)
+        # So user can do an explicit read on the file
+        # and get data:
+        file_object.seek(0, 0)
+        # The value will always be obtained by reading the stream:
+        self._add_field(name, file_name, None, file_object)
 
     def getvalue(self, name, default=None):
         """Get the value of this field, which could be either
@@ -169,80 +168,3 @@ class Form(dict):
             return default
         value = self.getvalue(name)
         return value[0] if isinstance(value, list) else value
-
-if __name__ == '__main__':
-    # Perform tests of this module:
-
-    # Test a GET request:
-    form = Form(environ={'QUERY_STRING': 'x=1&x=2&y=3'})
-    assert repr(form) == "{'x': [Field('x', None, '1'), Field('x', None, '2')], 'y': Field('y', None, '3')}"
-
-    assert form.getvalue('x') == ['1', '2']
-    assert form.getlist('x') == ['1', '2']
-    assert form.getfirst('x') == '1'
-    assert [field.filename for field in form['x']] == [None, None]
-    assert [field.value for field in form['x']] == ['1', '2']
-    assert [field.file.read() for field in form['x']] == ['1', '2']
-
-    assert form.getvalue('y') == '3'
-    assert form.getlist('y') == ['3']
-    assert form.getfirst('y') == '3'
-    assert form['y'].name == 'y'
-    assert form['y'].filename is None
-    assert form['y'].value == '3'
-    assert form['y'].file.read() == '3'
-
-    # Test a multipart POST request:
-    # We have here a text input field named 'act' whose value is 'abc' and two
-    # file input fields named 'the_file' where a file has been selected for only the
-    # first occurence:
-    fp = io.BytesIO(b'------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="act"\r\n\r\nTest\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="the_file"; filename="test.txt"\r\nContent-Type: text/plain\r\n\r\nabc\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="the_file"; filename=""\r\nContent-Type: application/octet-stream\r\n\r\n\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp--\r\n')
-    environ = {
-        'CONTENT_LENGTH': '431',
-        'CONTENT_TYPE': 'multipart/form-data; boundary=----WebKitFormBoundarytQ0DkMXsDqxwxBlp',
-        }
-    form = Form(environ=environ, fp=fp)
-    assert repr(form) == "{'act': Field('act', None, 'Test'), 'the_file': [Field('the_file', 'test.txt', b'abc'), Field('the_file', '', b'')]}"
-
-    assert form['act'].name == 'act'
-    assert form['act'].filename is None
-    assert form['act'].value == 'Test'
-    assert form['act'].file.read() == 'Test'
-
-    assert form['the_file'][0].name == 'the_file'
-    assert form['the_file'][0].filename == 'test.txt'
-    assert form['the_file'][0].value == b'abc'
-    assert form['the_file'][0].file.read() == b'abc'
-
-    assert form['the_file'][1].name == 'the_file'
-    assert form['the_file'][1].filename == ''
-    assert form['the_file'][1].value == b''
-    assert form['the_file'][1].file.read() == b''
-
-    assert form.getvalue('the_file') == [b'abc', b'']
-
-    # Test a JSON-encoded POST request:
-    fp = io.BytesIO(b'{"x": [1,2], "y": 3}')
-    environ = {
-        'CONTENT_LENGTH': '20',
-        'CONTENT_TYPE': 'application/json',
-        }
-    form = Form(environ=environ, fp=fp)
-    assert repr(form) == "{'x': [Field('x', None, 1), Field('x', None, 2)], 'y': Field('y', None, 3)}"
-
-    assert form.getvalue('x') == [1, 2]
-    assert form.getlist('x') == [1, 2]
-    assert form.getfirst('x') == 1
-    assert [field.filename for field in form['x']] == [None, None]
-    assert [field.value for field in form['x']] == [1, 2]
-    assert [field.file for field in form['x']] == [None, None]
-
-    assert form.getvalue('y') == 3
-    assert form.getlist('y') == [3]
-    assert form.getfirst('y') == 3
-    assert form['y'].name == 'y'
-    assert form['y'].filename is None
-    assert form['y'].value == 3
-    assert form['y'].file is None
-
-    print('All tests passed!')

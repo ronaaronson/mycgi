@@ -1,6 +1,3 @@
-/*
-/*/
-!.gitignore
-!.gitattributes
-!/src
-/src/mycgi.egg-info
+/dist/**
+**/__pycache__
+src/mycgi.egg-info/**
