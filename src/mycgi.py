@@ -15,9 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
-import multipart
+import python_multipart as multipart
 import os
 import sys
 import json
