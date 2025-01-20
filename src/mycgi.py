@@ -15,9 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
-import python_multipart as multipart
+import python_multipart
 import os
 import sys
 import json
@@ -102,7 +102,7 @@ class Form(dict):
             else:
                 headers = {}
                 headers['Content-Type'] = environ.get('CONTENT_TYPE')
-                multipart.parse_form(headers, fp, self._on_field, self._on_file)
+                python_multipart.parse_form(headers, fp, self._on_field, self._on_file)
         else:
             # GET or HEAD request
             for k, v in parse_qs(environ['QUERY_STRING'], keep_blank_values=keep_blank_values).items():
@@ -124,13 +124,13 @@ class Form(dict):
                 self[name] = [l, form_value]
 
     def _on_field(self, field):
-        # Called by multipart.parse_form for each non-file form field.
+        # Called by python_multipart.parse_form for each non-file form field.
         name = unquote_plus(field.field_name.decode())
         value = '' if field.value is None else unquote_plus(field.value.decode())
         self._add_field(name, None, value, None)
 
     def _on_file(self, file):
-        # Called by multipart.parse_form for each file form field.
+        # Called by python_multipart.parse_form for each file form field.
         name = unquote_plus(file.field_name.decode())
         file_name = file.file_name
         if file_name is not None:
