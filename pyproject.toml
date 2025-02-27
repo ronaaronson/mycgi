@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mycgi"
-version = "0.0.6"
+version = "0.0.7"
 description = "A Python3 replacement for the deprecated cgi module"
 readme = "README.md"
 authors = [{ name = "Ronald Aaronson", email = "ronaldaaronson@gmail.com" }]
