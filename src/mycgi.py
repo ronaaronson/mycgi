@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 import python_multipart
 import os
@@ -23,6 +23,7 @@ import sys
 import json
 from urllib.parse import parse_qs, unquote_plus
 import io
+from functools import partial
 
 __all__ = ['Form', 'Field']
 
@@ -96,12 +97,17 @@ class Form(dict):
                 fp = sys.stdin.buffer
             if environ['CONTENT_TYPE'][0:16] == 'application/json':
                 # The assumption is that a dictionary is being passed.
-                d = json.loads(fp.read(int(environ['CONTENT_LENGTH'])))
+                rdr = (
+                    partial(fp.read, int(environ['CONTENT_LENGTH']))
+                    if 'CONTENT_LENGTH' in environ else fp.read
+                )
+                d = json.loads(rdr())
                 for k, v in d.items():
                     self[k] = [Field(k, None, value) for value in v] if isinstance(v, list) else Field(k, None, v)
             else:
-                headers = {}
-                headers['Content-Type'] = environ.get('CONTENT_TYPE')
+                headers = {'Content-Type': environ.get('CONTENT_TYPE')}
+                if 'CONTENT_LENGTH' in environ:
+                    headers['Content-Length'] = environ['CONTENT_LENGTH']
                 python_multipart.parse_form(headers, fp, self._on_field, self._on_file)
         else:
             # GET or HEAD request
