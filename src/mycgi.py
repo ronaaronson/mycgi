@@ -17,7 +17,6 @@ limitations under the License.
 
 __version__ = '0.0.7'
 
-import python_multipart
 import os
 import sys
 import json
@@ -25,10 +24,11 @@ from urllib.parse import parse_qs, unquote_plus
 import io
 from functools import partial
 
+import python_multipart
+
 __all__ = ['Form', 'Field']
 
 class Field:
-
     """A Field represents a form value"""
 
     def __init__(self, name, filename, value, file=None):
@@ -37,7 +37,7 @@ class Field:
             1. name:     The form field name.
             2. filename: If this field is for a file, then the
                          file's filename, else None.
-            3. value:    The form field value (or a file's contents as bytes).
+            3. value:    The form field value (or a file's contents) as bytes.
             4. file:     If this field is for a file, then a stream
                          that can be read to get the uploaded file's value, else None.
         """
@@ -95,13 +95,15 @@ class Form(dict):
             # POST or PUT request:
             if fp is None:
                 fp = sys.stdin.buffer
+
             if environ['CONTENT_TYPE'][0:16] == 'application/json':
                 # The assumption is that a dictionary is being passed.
+                encoding = fp.encoding if hasattr(fp, 'encoding') else 'latin-1'
                 rdr = (
                     partial(fp.read, int(environ['CONTENT_LENGTH']))
                     if 'CONTENT_LENGTH' in environ else fp.read
                 )
-                d = json.loads(rdr())
+                d = json.loads(rdr().decode(encoding))
                 for k, v in d.items():
                     self[k] = [Field(k, None, value) for value in v] if isinstance(v, list) else Field(k, None, v)
             else:
