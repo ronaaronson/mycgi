@@ -8,7 +8,7 @@ version = "0.0.7"
 description = "A Python3 replacement for the deprecated cgi module"
 readme = "README.md"
 authors = [{ name = "Ronald Aaronson", email = "ronaldaaronson@gmail.com" }]
-license = { file = "LICENSE.txt" }
+license = { text = "Apache-2.0" }
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
@@ -22,3 +22,5 @@ requires-python = ">=3.7"
 Homepage = "https://github.com/ronaaronson/mycgi"
 Changelog = "https://github.com/ronaaronson/mycgi/tags"
 Source = "https://github.com/ronaaronson/mycgi"
+[tool.setuptools]
+license-files = []
