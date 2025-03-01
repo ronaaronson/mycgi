@@ -34,7 +34,11 @@ contents = form.getvalue('spreadsheet')
 The initializer for the `mycgi.Form` class is:
 
 ```
-    def __init__(self, environ=os.environ, fp=None, keep_blank_values=False):
+    def __init__(self,
+                 environ: Mapping=os.environ,
+                 fp: BinaryIO | None=None,
+                 keep_blank_values: bool=False
+        ) -> None:
         """
         Initialize a Form instance.
 
@@ -43,25 +47,27 @@ The initializer for the `mycgi.Form` class is:
         environ: environment dictionary
                  default: os.environ
 
-        fp: stream containing encoded POST and PUT data
-            default: None (in which case sys.stdin.buffer will be used for
-                     POST and PUT requests)
+        fp: stream containing encoded POST and PUT data used
+            for PUT and POST requests.
+            default: None (in which case if environ['wsgi.input'] exists it
+                     will be used else sys.stdin.buffer will be used)
 
         keep_blank_values: flag indicating whether blank values in
                            percent-encoded forms should be treated as blank
                            strings.
                            default: False
         """
-
 ```
 
 A `mycgi.Form` instance is a specialized dictionary whose keys are the field names and whose values are either a `mycgi.Field`
 instance or a list of these instances. A `mycgi.Field` instance has the following attributes:
 
-1. `name`:     The form field name.
-2. `filename`: If this field is for a file, then the file's filename, else None.
-3. `value`:    The form field value (or a file's contents as bytes).
-4. `file`:     If this field is for a file, then a stream that can be read to get the uploaded file's value, else None.
+<pre>
+1. <b>name</b>:     The form field name.
+2. <b>filename</b>: If this field is for a file, then the file's filename, else None.
+3. <b>value</b>:    The form field value (or a file's contents as bytes).
+4. <b>file</b>:     If this field is for a file, then a stream that can be read to get the uploaded file's value, else None.
+</pre>
 
 The `mycgi.Form` class supports the `getvalue`, `getlist` and `getfirst` methods that behave identically to the like-named methods of the deprecated `cgi.FieldStorage` class and which make it unnecessary to access the `mycgi.Field` instances, although doing so can be useful for processing file uploads.
 
@@ -77,7 +83,7 @@ To use `mycgi.Form` with a WSGI application:
 from mycgi import Form
 
 def wsgiApp(environ, start_response):
-    form = Form(environ=environ, fp=environ['wsgi.input'])
+    form = Form(environ=environ)
     ...
 ```
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mycgi"
-version = "0.0.7"
+version = "0.0.8"
 description = "A Python3 replacement for the deprecated cgi module"
 readme = "README.md"
 authors = [{ name = "Ronald Aaronson", email = "ronaldaaronson@gmail.com" }]
@@ -17,7 +17,7 @@ keywords = ["cgi", "replacement"]
 dependencies = [
     "python-multipart >= 0.0.20",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 [project.urls]
 Homepage = "https://github.com/ronaaronson/mycgi"
 Changelog = "https://github.com/ronaaronson/mycgi/tags"
