@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import os
 import sys
@@ -166,6 +166,7 @@ class Form(dict):
         # Called by multipart.parse_form for each file form field.
         name = unquote_plus(file.field_name.decode())
         file_name = file.file_name.decode() if file.file_name is not None else None
+        file.file_object.seek(0)  # So read on file succeeds
         # The value will always be obtained by reading the stream:
         self._add_field(name, file_name, None, file.file_object)
 
