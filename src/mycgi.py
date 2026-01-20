@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 import os
 import sys
@@ -113,8 +113,10 @@ class Form(dict):
                            strings.
                            default: False
         """
+        if not 'REQUEST_METHOD' in environ:
+            environ['REQUEST_METHOD'] = 'GET'  # For testing stand-alone
 
-        if 'CONTENT_TYPE' in environ:
+        if environ['REQUEST_METHOD'] in ('POST', 'PUT'):
             # POST or PUT request:
             if fp is None:
                 fp = cast(BinaryIO, environ.get('wsgi.input', sys.stdin.buffer))
@@ -133,7 +135,7 @@ class Form(dict):
                 python_multipart.parse_form(headers, fp, self._on_field, self._on_file)
         else:
             # GET or HEAD request
-            for k, v in parse_qs(environ['QUERY_STRING'], keep_blank_values=keep_blank_values).items():
+            for k, v in parse_qs(environ.get('QUERY_STRING', ''), keep_blank_values=keep_blank_values).items():
                 for value in v:
                     self._add_field(k, None, value, None)
 

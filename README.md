@@ -94,7 +94,7 @@ from mycgi import Form
 import io
 
 # Test a GET request:
-form = Form(environ={'QUERY_STRING': 'x=1&x=2&y=3'})
+form = Form(environ={'REQUEST_METHOD': 'GET', 'QUERY_STRING': 'x=1&x=2&y=3'})
 assert repr(form) == "{'x': [Field('x', None, '1'), Field('x', None, '2')], 'y': Field('y', None, '3')}"
 
 assert form.getvalue('x') == ['1', '2']
@@ -116,6 +116,7 @@ assert form['y'].value == '3'
 # first occurence:
 fp = io.BytesIO(b'------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="act"\r\n\r\nTest\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="the_file"; filename="test.txt"\r\nContent-Type: text/plain\r\n\r\nabc\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp\r\nContent-Disposition: form-data; name="the_file"; filename=""\r\nContent-Type: application/octet-stream\r\n\r\n\r\n------WebKitFormBoundarytQ0DkMXsDqxwxBlp--\r\n')
 environ = {
+    'REQUEST_METHOD': 'POST',
     'CONTENT_LENGTH': '431',
     'CONTENT_TYPE': 'multipart/form-data; boundary=----WebKitFormBoundarytQ0DkMXsDqxwxBlp',
     }
@@ -138,6 +139,7 @@ assert form.getvalue('the_file') == [b'abc', b'']
 # Test a JSON-encoded POST request:
 fp = io.BytesIO(b'{"x": [1,2], "y": 3}')
 environ = {
+    'REQUEST_METHOD': 'POST',
     'CONTENT_LENGTH': '20',
     'CONTENT_TYPE': 'application/json',
     }
